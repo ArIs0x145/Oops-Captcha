@@ -1,6 +1,6 @@
 from enum import Enum
 
 class CaptchaType(Enum):
-    # CaptchaType
+    # Captcha Type
     IMAGE = 'image'
 
