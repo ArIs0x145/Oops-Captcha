@@ -1,7 +1,10 @@
-from typing import Any, Tuple
-from captcha.image import ImageCaptcha
+from typing import Any, Tuple, Union
+from captcha.image import ImageCaptcha  # type: ignore
 from .base import CaptchaGenerator, CaptchaConfig
 import random
+from io import BytesIO
+from PIL import Image  # type: ignore
+from pathlib import Path
 
 class ImageCaptchaGenerator(CaptchaGenerator[Any, str]):
     
@@ -24,11 +27,20 @@ class ImageCaptchaGenerator(CaptchaGenerator[Any, str]):
     
     def generate(self) -> Tuple[Any, str]:
         text = self._generate_text()
-        image = self.generator.generate(text)
+        image = self.generator.generate(str(text))
         return image, text
     
-    def save(self, image: Any, path: str) -> None:
-        self.generator.write(image, path)
+    def save(self, image: Any, path: Union[str, Path]) -> None:
+
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with BytesIO(image.getvalue()) as image_data:
+                with Image.open(image_data) as img:
+                    img.save(path_obj)
+        except Exception as e:
+            raise IOError(f"Failed to save captcha image to {path}: {e}")
     
     # Generate Random Text
     def _generate_text(self) -> str:

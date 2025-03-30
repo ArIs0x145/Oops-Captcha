@@ -1,5 +1,5 @@
 from pathlib import Path
-import yaml
+import yaml  # type: ignore
 from typing import Dict, Any
 from functools import lru_cache
 
