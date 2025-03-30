@@ -5,6 +5,7 @@ from functools import lru_cache
 
 class Settings:
     
+    # Init Config By YAML File
     def __init__(self, config_path: str = "configs/default.yaml"):
         self._config_path = Path(config_path)
         self._config = self._load_config()
@@ -16,9 +17,11 @@ class Settings:
         except FileNotFoundError:
             raise FileNotFoundError(f"Configuration file '{self._config_path}' not found")
     
+    # Get Captcha Config By Captcha Type
     def get_captcha_config(self, type_: str) -> Dict[str, Any]:
         return self._config.get('captcha', {}).get(type_, {})
 
-@lru_cache # Get Instance
+# Get Settings Instance
+@lru_cache
 def get_settings() -> Settings:
     return Settings()
