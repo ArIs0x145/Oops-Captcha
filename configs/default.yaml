@@ -1,0 +1,7 @@
+captcha:
+  image:
+    width: 160
+    height: 60
+    length: 4
+    fonts: []
+    characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
