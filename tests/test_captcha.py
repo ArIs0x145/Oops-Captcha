@@ -9,7 +9,8 @@ def test_default_image_captcha():
     output_dir.mkdir(exist_ok=True)
     
     image, text = generator.generate()
-    generator.save(image, output_dir / f"default_{text}.png")
+    generator.save_sample(image, output_dir / f"default_{text}.png")
+    generator.save_label(text, output_dir / f"default_{text}.txt")
     
     # Default Length Is 4
     assert len(text) == 4
@@ -29,7 +30,8 @@ def test_custom_image_captcha():
     output_dir.mkdir(exist_ok=True)
     
     image, text = generator.generate()
-    generator.save(image, output_dir / f"custom_{text}.png")
+    generator.save_sample(image, output_dir / f"custom_{text}.png")
+    generator.save_label(text, output_dir / f"custom_{text}.txt")
     
     # Custom Length Is 6
     assert len(text) == 6

@@ -30,16 +30,26 @@ class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
         image = self.generator.generate(str(text))
         return image, text
     
-    def save(self, image: BytesIO, path: Union[str, Path]) -> None:
+    def save_sample(self, sample: BytesIO, path: Union[str, Path]) -> None:
         path_obj = Path(path)
         path_obj.parent.mkdir(parents=True, exist_ok=True)
         
         try:
-            with BytesIO(image.getvalue()) as image_data:
+            with BytesIO(sample.getvalue()) as image_data:
                 with Image.open(image_data) as img:
                     img.save(path_obj)
         except Exception as e:
             raise IOError(f"Failed to save captcha image to {path}: {e}")
+    
+    def save_label(self, label: str, path: Union[str, Path]) -> None:
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with open(path_obj, 'w') as f:
+                f.write(label)
+        except Exception as e:
+            raise IOError(f"Failed to save captcha label to {path}: {e}")
     
     # Generate Random Text
     def _generate_text(self) -> str:
