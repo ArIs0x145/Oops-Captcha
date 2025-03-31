@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Tuple, Any, Dict, Generic
+from typing import TypeVar, Tuple, Any, Dict, Generic, Union
 from dataclasses import dataclass
+from pathlib import Path
 from .types import CaptchaType
 
 DataType = TypeVar('DataType')  # Captcha Data
@@ -21,5 +22,5 @@ class CaptchaGenerator(Generic[DataType, LabelType], ABC):
         pass
     
     @abstractmethod
-    def save(self, data: DataType, path: str) -> None:
+    def save(self, data: DataType, path: Union[str, Path]) -> None:
         pass

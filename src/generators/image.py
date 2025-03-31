@@ -1,4 +1,4 @@
-from typing import Any, Tuple, Union
+from typing import Tuple, Union
 from captcha.image import ImageCaptcha  # type: ignore
 from .base import CaptchaGenerator, CaptchaConfig
 import random
@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image  # type: ignore
 from pathlib import Path
 
-class ImageCaptchaGenerator(CaptchaGenerator[Any, str]):
+class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
     
     def __init__(self, config: CaptchaConfig):
         super().__init__(config)
@@ -25,13 +25,12 @@ class ImageCaptchaGenerator(CaptchaGenerator[Any, str]):
             fonts=self.fonts
         )
     
-    def generate(self) -> Tuple[Any, str]:
+    def generate(self) -> Tuple[BytesIO, str]:
         text = self._generate_text()
         image = self.generator.generate(str(text))
         return image, text
     
-    def save(self, image: Any, path: Union[str, Path]) -> None:
-
+    def save(self, image: BytesIO, path: Union[str, Path]) -> None:
         path_obj = Path(path)
         path_obj.parent.mkdir(parents=True, exist_ok=True)
         
