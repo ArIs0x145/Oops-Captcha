@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Tuple, Any, Dict, Generic, Union
+from typing import TypeVar, Tuple, Any, Dict, Generic, Union, Optional
 from dataclasses import dataclass
 from pathlib import Path
 from .types import CaptchaType
@@ -22,9 +22,17 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
         pass
     
     @abstractmethod
-    def save_sample(self, sample: SampleType, path: Union[str, Path]) -> None:
+    def _save_sample(self, sample: SampleType, path: Union[str, Path]) -> Path:
         pass
     
     @abstractmethod
-    def save_label(self, label: LabelType, path: Union[str, Path]) -> None:
+    def _save_label(self, label: LabelType, path: Union[str, Path]) -> Path:
         pass
+    
+    @abstractmethod
+    def save(self, sample: SampleType, label: LabelType, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
+        pass
+    
+    def export(self, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
+        sample, label = self.generate()
+        return self.save(sample, label, output_dir)
