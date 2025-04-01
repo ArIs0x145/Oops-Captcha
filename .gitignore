@@ -180,5 +180,4 @@ cython_debug/
 *.swo
 
 # Data
-output/
 datasets/
