@@ -5,3 +5,4 @@ captcha:
     length: 4
     fonts: []
     characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    output_dir: "datasets/image"
