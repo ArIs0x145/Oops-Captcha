@@ -4,9 +4,9 @@ from pathlib import Path
 from io import BytesIO
 from PIL import Image # type: ignore
 
-from captcha.generators.types import CaptchaType
-from captcha.generators.base import CaptchaConfig
-from captcha.generators.image import ImageCaptchaGenerator
+from oopscaptcha.generators.types import CaptchaType
+from oopscaptcha.generators.base import CaptchaConfig
+from oopscaptcha.generators.image import ImageCaptchaGenerator
 
 class TestImageCaptchaGenerator(unittest.TestCase):
     

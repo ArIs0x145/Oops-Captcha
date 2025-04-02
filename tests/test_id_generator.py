@@ -2,7 +2,7 @@ import unittest
 import re
 import time
 from collections import Counter
-from captcha.utils.id_generator import IDGenerator
+from oopscaptcha.utils.id_generator import IDGenerator
 
 class TestIDGenerator(unittest.TestCase):
     

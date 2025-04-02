@@ -4,7 +4,7 @@ import tempfile
 import yaml # type: ignore
 from unittest.mock import patch, mock_open
 
-from captcha.config.settings import Settings, get_settings
+from oopscaptcha.config.settings import Settings, get_settings
 
 class TestSettings(unittest.TestCase):
     
@@ -76,7 +76,7 @@ class TestSettings(unittest.TestCase):
         # Verify error message
         self.assertIn('not found', str(context.exception))
     
-    @patch('src.config.settings.Settings')
+    @patch('oopscaptcha.config.settings.Settings')
     def test_get_settings_cache(self, mock_settings):
         """Test caching functionality"""
         # Ensure each call returns the same instance

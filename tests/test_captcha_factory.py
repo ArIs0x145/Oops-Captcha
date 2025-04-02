@@ -1,13 +1,13 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from captcha.generators.types import CaptchaType
-from captcha.generators.factory import CaptchaFactory
-from captcha.generators.image import ImageCaptchaGenerator
-from captcha.config.settings import Settings
+from oopscaptcha.generators.types import CaptchaType
+from oopscaptcha.generators.factory import CaptchaFactory
+from oopscaptcha.generators.image import ImageCaptchaGenerator
+from oopscaptcha.config.settings import Settings
 
 class TestCaptchaFactory(unittest.TestCase):
     
-    @patch('src.generators.factory.get_settings')
+    @patch('oopscaptcha.generators.factory.get_settings')
     def test_create_image_captcha(self, mock_get_settings):
         """Test creating image captcha generator"""
         # Set up mock
@@ -30,7 +30,7 @@ class TestCaptchaFactory(unittest.TestCase):
         mock_get_settings.assert_called_once()
         mock_settings.get_captcha_config.assert_called_once_with('image')
     
-    @patch('src.generators.factory.get_settings')
+    @patch('oopscaptcha.generators.factory.get_settings')
     def test_create_with_custom_params(self, mock_get_settings):
         """Test creating generator with custom parameters"""
         # Set up mock
