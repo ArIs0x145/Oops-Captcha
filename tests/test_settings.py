@@ -1,11 +1,10 @@
 import unittest
 import os
-import sys
 import tempfile
 import yaml # type: ignore
 from unittest.mock import patch, mock_open
 
-from src.config.settings import Settings, get_settings
+from captcha.config.settings import Settings, get_settings
 
 class TestSettings(unittest.TestCase):
     

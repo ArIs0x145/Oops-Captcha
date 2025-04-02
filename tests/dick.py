@@ -1,5 +1,5 @@
-from src.generators.factory import CaptchaFactory
-from src.generators.types import CaptchaType
+from captcha.generators.factory import CaptchaFactory
+from captcha.generators.types import CaptchaType
 
 def main():
     generator = CaptchaFactory.create(CaptchaType.IMAGE)

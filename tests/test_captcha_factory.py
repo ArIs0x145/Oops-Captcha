@@ -1,14 +1,9 @@
 import unittest
-import tempfile
-import os
-import sys
 from unittest.mock import patch, MagicMock
-
-from src.generators.types import CaptchaType
-from src.generators.factory import CaptchaFactory
-from src.generators.image import ImageCaptchaGenerator
-from src.generators.base import CaptchaGenerator
-from src.config.settings import Settings
+from captcha.generators.types import CaptchaType
+from captcha.generators.factory import CaptchaFactory
+from captcha.generators.image import ImageCaptchaGenerator
+from captcha.config.settings import Settings
 
 class TestCaptchaFactory(unittest.TestCase):
     

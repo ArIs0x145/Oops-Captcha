@@ -1,14 +1,12 @@
 import unittest
 import tempfile
-import os
-import sys
 from pathlib import Path
 from io import BytesIO
 from PIL import Image # type: ignore
 
-from src.generators.types import CaptchaType
-from src.generators.base import CaptchaConfig
-from src.generators.image import ImageCaptchaGenerator
+from captcha.generators.types import CaptchaType
+from captcha.generators.base import CaptchaConfig
+from captcha.generators.image import ImageCaptchaGenerator
 
 class TestImageCaptchaGenerator(unittest.TestCase):
     
