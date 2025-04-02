@@ -5,9 +5,6 @@ import tempfile
 import yaml # type: ignore
 from unittest.mock import patch, mock_open
 
-# Add parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from src.config.settings import Settings, get_settings
 
 class TestSettings(unittest.TestCase):

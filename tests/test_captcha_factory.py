@@ -4,9 +4,6 @@ import os
 import sys
 from unittest.mock import patch, MagicMock
 
-# Add parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from src.generators.types import CaptchaType
 from src.generators.factory import CaptchaFactory
 from src.generators.image import ImageCaptchaGenerator
