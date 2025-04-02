@@ -2,9 +2,6 @@ import unittest
 import os
 import sys
 
-# Add parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 if __name__ == '__main__':
     # Load all test files starting with 'test_'
     test_suite = unittest.defaultTestLoader.discover(

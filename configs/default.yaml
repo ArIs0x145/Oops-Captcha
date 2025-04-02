@@ -5,4 +5,11 @@ captcha:
     length: 4
     fonts: []
     characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    output_dir: "data/image"
+    train_ratio: 0.8
+    val_ratio: 0.1
+    test_ratio: 0.1
+    parallel: false
+    max_workers: null
+    seed: null
     output_dir: "datasets/image"

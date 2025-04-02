@@ -1,21 +1,13 @@
 import unittest
-import tempfile
-import os
-import sys
 from unittest.mock import patch, MagicMock
-
-# Add parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from src.generators.types import CaptchaType
-from src.generators.factory import CaptchaFactory
-from src.generators.image import ImageCaptchaGenerator
-from src.generators.base import CaptchaGenerator
-from src.config.settings import Settings
+from oopscaptcha.generators.types import CaptchaType
+from oopscaptcha.generators.factory import CaptchaFactory
+from oopscaptcha.generators.image import ImageCaptchaGenerator
+from oopscaptcha.config.settings import Settings
 
 class TestCaptchaFactory(unittest.TestCase):
     
-    @patch('src.generators.factory.get_settings')
+    @patch('oopscaptcha.generators.factory.get_settings')
     def test_create_image_captcha(self, mock_get_settings):
         """Test creating image captcha generator"""
         # Set up mock
@@ -38,7 +30,7 @@ class TestCaptchaFactory(unittest.TestCase):
         mock_get_settings.assert_called_once()
         mock_settings.get_captcha_config.assert_called_once_with('image')
     
-    @patch('src.generators.factory.get_settings')
+    @patch('oopscaptcha.generators.factory.get_settings')
     def test_create_with_custom_params(self, mock_get_settings):
         """Test creating generator with custom parameters"""
         # Set up mock

@@ -1,14 +1,10 @@
 import unittest
 import os
-import sys
 import tempfile
 import yaml # type: ignore
 from unittest.mock import patch, mock_open
 
-# Add parent directory to the path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
-from src.config.settings import Settings, get_settings
+from oopscaptcha.config.settings import Settings, get_settings
 
 class TestSettings(unittest.TestCase):
     
@@ -80,15 +76,26 @@ class TestSettings(unittest.TestCase):
         # Verify error message
         self.assertIn('not found', str(context.exception))
     
-    @patch('src.config.settings.Settings')
+    @patch('oopscaptcha.config.settings.Settings')
     def test_get_settings_cache(self, mock_settings):
         """Test caching functionality"""
+        # Clear LRU cache before testing
+        from functools import lru_cache
+        get_settings.cache_clear()  # Clear the cache
+        
+        # Setup mock to return a specific instance
+        mock_instance = mock_settings.return_value
+        
         # Ensure each call returns the same instance
         instance1 = get_settings()
         instance2 = get_settings()
         
-        # Verify Settings instance was created only once
+        # Verify Settings constructor was called once
         mock_settings.assert_called_once()
+        
+        # Verify both instances are the same
+        self.assertIs(instance1, instance2)
+        self.assertIs(instance1, mock_instance)
 
 if __name__ == '__main__':
     unittest.main() 
