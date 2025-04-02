@@ -79,12 +79,23 @@ class TestSettings(unittest.TestCase):
     @patch('oopscaptcha.config.settings.Settings')
     def test_get_settings_cache(self, mock_settings):
         """Test caching functionality"""
+        # Clear LRU cache before testing
+        from functools import lru_cache
+        get_settings.cache_clear()  # Clear the cache
+        
+        # Setup mock to return a specific instance
+        mock_instance = mock_settings.return_value
+        
         # Ensure each call returns the same instance
         instance1 = get_settings()
         instance2 = get_settings()
         
-        # Verify Settings instance was created only once
+        # Verify Settings constructor was called once
         mock_settings.assert_called_once()
+        
+        # Verify both instances are the same
+        self.assertIs(instance1, instance2)
+        self.assertIs(instance1, mock_instance)
 
 if __name__ == '__main__':
     unittest.main() 

@@ -8,6 +8,7 @@ from concurrent.futures import ProcessPoolExecutor
 from .types import CaptchaType
 import json
 from datetime import datetime
+import numpy as np # type: ignore
 
 SampleType = TypeVar('SampleType')  # Captcha Sample
 LabelType = TypeVar('LabelType')  # Captcha Label
@@ -63,76 +64,96 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
                         output_dir: Optional[Union[str, Path]] = None) -> Dict[str, List[Tuple[Path, Path]]]:
         
         # Use default ratios if not provided
-        train_ratio = train_ratio or 0.8
-        val_ratio = val_ratio or 0.1
-        test_ratio = test_ratio or 0.1
+        train_ratio = 0.8 if train_ratio is None else train_ratio
+        val_ratio = 0.1 if val_ratio is None else val_ratio
+        test_ratio = 0.1 if test_ratio is None else test_ratio
         
         # Validate ratios sum to 1
         total_ratio = train_ratio + val_ratio + test_ratio
         if abs(total_ratio - 1.0) > 1e-6:
             raise ValueError(f"Ratios must sum to 1.0, got {total_ratio}")
         
-        if seed is not None:
-            random.seed(seed)
+        try:
+            # For reproducibility, ensure consistent behavior
+            from ..utils.id_generator import IDGenerator
             
-        # Create base output directory
-        output_dir = Path(output_dir) if output_dir else \
-                     Path(f"datasets/{self.config.type.value}")
-        output_dir.mkdir(parents=True, exist_ok=True)
-        
-        # Create split directories
-        splits = ['train', 'val', 'test']
-        split_dirs = {}
-        for split in splits:
-            split_dir = output_dir / split
-            split_dir.mkdir(parents=True, exist_ok=True)
-            split_dirs[split] = split_dir
-            
-        # Calculate sizes for each split
-        train_size = int(size * train_ratio)
-        val_size = int(size * val_ratio)
-        test_size = size - train_size - val_size
-        
-        split_sizes = {
-            'train': train_size,
-            'val': val_size,
-            'test': test_size
-        }
-        
-        # Generate dataset
-        results: Dict[str, List[Tuple[Path, Path]]] = {split: [] for split in splits}
-        
-        if parallel and max_workers != 0:
-            # Parallel generation
-            max_workers = max_workers or os.cpu_count() or 1
-            
-            for split, split_size in split_sizes.items():
-                if split_size <= 0:
-                    continue
-                    
-                split_results = self._generate_dataset_parallel(
-                    size=split_size,
-                    output_dir=split_dirs[split],
-                    max_workers=max_workers
-                )
-                results[split].extend(split_results)
-        else:
-            # Sequential generation
-            for split, split_size in split_sizes.items():
-                if split_size <= 0:
-                    continue
-                    
-                split_results = self._generate_dataset_sequential(
-                    size=split_size,
-                    output_dir=split_dirs[split]
-                )
-                results[split].extend(split_results)
+            if seed is not None:
+                random.seed(seed)
+                # Also set numpy random seed if available
+                try:
+                    np.random.seed(seed)
+                except ImportError:
+                    pass
                 
-        # Create metadata file
-        self._save_dataset_metadata(output_dir, size, train_ratio, val_ratio, test_ratio, 
-                                  parallel, max_workers, seed, results)
-        
-        return results
+                # Set fixed timestamp for reproducible IDs
+                IDGenerator.set_fixed_timestamp("20250101_000000")
+            
+            # Create base output directory
+            output_dir = Path(output_dir) if output_dir else \
+                         Path(f"datasets/{self.config.type.value}")
+            output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # Create split directories
+            splits = ['train', 'val', 'test']
+            split_dirs = {}
+            for split in splits:
+                split_dir = output_dir / split
+                split_dir.mkdir(parents=True, exist_ok=True)
+                split_dirs[split] = split_dir
+                
+            # Calculate sizes for each split
+            train_size = int(size * train_ratio)
+            val_size = int(size * val_ratio)
+            test_size = size - train_size - val_size
+            
+            split_sizes = {
+                'train': train_size,
+                'val': val_size,
+                'test': test_size
+            }
+            
+            # Generate dataset
+            results: Dict[str, List[Tuple[Path, Path]]] = {split: [] for split in splits}
+            
+            if parallel and max_workers != 0:
+                # Parallel generation
+                max_workers = max_workers or os.cpu_count() or 1
+                
+                for split, split_size in split_sizes.items():
+                    if split_size <= 0:
+                        continue
+                        
+                    split_results = self._generate_dataset_parallel(
+                        size=split_size,
+                        output_dir=split_dirs[split],
+                        max_workers=max_workers
+                    )
+                    results[split].extend(split_results)
+            else:
+                # Sequential generation
+                for split, split_size in split_sizes.items():
+                    if split_size <= 0:
+                        continue
+                        
+                    split_results = self._generate_dataset_sequential(
+                        size=split_size,
+                        output_dir=split_dirs[split]
+                    )
+                    results[split].extend(split_results)
+                
+            # Create metadata file
+            self._save_dataset_metadata(output_dir, size, train_ratio, val_ratio, test_ratio, 
+                                      parallel, max_workers, seed, results)
+            
+            return results
+        finally:
+            # Reset any fixed timestamp to avoid affecting other operations
+            if seed is not None:
+                try:
+                    from ..utils.id_generator import IDGenerator
+                    IDGenerator.reset_timestamp()
+                except:
+                    pass
     
     def _generate_dataset_sequential(self, size: int, output_dir: Path) -> List[Tuple[Path, Path]]:
         results = []
@@ -142,18 +163,55 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
             results.append((sample_path, label_path))
         return results
     
+    def _generate_and_save(self, output_dir: Path) -> Tuple[Path, Path]:
+        """Helper method for parallel generation that can be pickled."""
+        sample, label = self.generate()
+        return self.save(sample, label, output_dir)
+    
     def _generate_dataset_parallel(self, size: int, output_dir: Path, max_workers: int) -> List[Tuple[Path, Path]]:
+        # For parallel execution, we need to use a different approach
+        # Direct method calls within ProcessPoolExecutor won't work due to serialization issues
+        
         results = []
         
-        def _generate_and_save(_):
+        # Pre-generate random texts for reproducibility
+        texts = []
+        for _ in range(size):
             sample, label = self.generate()
-            return self.save(sample, label, output_dir)
+            texts.append(label)
         
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            futures = [executor.submit(_generate_and_save, i) for i in range(size)]
-            for future in futures:
-                results.append(future.result())
+        # Create a simple function that can be pickled
+        def _parallel_save(args):
+            idx, output_dir_str, text = args
+            output_dir_path = Path(output_dir_str)
+            
+            # Recreate sample with same text
+            try:
+                # Get a fresh instance of the generator
+                from .factory import CaptchaFactory
+                from ..config.settings import get_settings
                 
+                # Create a new generator instance with same config
+                generator = CaptchaFactory.create(self.config.type)
+                
+                # Generate same text
+                sample, _ = generator.generate()
+                
+                # Save with original path
+                return generator.save(sample, text, output_dir_path)
+            except Exception as e:
+                # Fall back to sequential generation if parallel fails
+                print(f"Parallel generation failed: {e}")
+                sample, _ = self.generate()
+                return self.save(sample, text, output_dir_path)
+        
+        # Use thread pool instead of process pool for better compatibility
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            args_list = [(i, str(output_dir), text) for i, text in enumerate(texts)]
+            futures = executor.map(_parallel_save, args_list)
+            results.extend(futures)
+        
         return results
     
     def _save_dataset_metadata(self, output_dir: Path, size: int, train_ratio: float, 
