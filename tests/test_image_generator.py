@@ -41,7 +41,7 @@ class TestImageCaptchaGenerator(unittest.TestCase):
     
     def test_generate_random_text(self):
         """Test random text generation"""
-        text = self.generator._generate_random_text()
+        text = self.generator.generate_label()
         self.assertEqual(len(text), 6)
         for char in text:
             self.assertIn(char, 'abcdefgh12345')

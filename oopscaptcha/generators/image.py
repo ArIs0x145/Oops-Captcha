@@ -6,6 +6,7 @@ from io import BytesIO
 from PIL import Image  # type: ignore
 from pathlib import Path
 from ..utils.id_generator import IDGenerator
+from datetime import datetime
 
 class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
     
@@ -27,24 +28,10 @@ class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
             fonts=self.fonts
         )
     
-    def generate(self) -> Tuple[BytesIO, str]:
-        text = self._generate_random_text()
-        image = self.generator.generate(str(text))
-        return image, text
-    
-    def _save_sample(self, sample: BytesIO, path: Union[str, Path]) -> Path:
-        
-        # Convert to Path object
-        path_obj = Path(path)
-        path_obj.parent.mkdir(parents=True, exist_ok=True)
-        
-        try:
-            with BytesIO(sample.getvalue()) as image_data:
-                with Image.open(image_data) as img:
-                    img.save(path_obj)
-            return path_obj
-        except Exception as e:
-            raise IOError(f"Failed to save captcha image to {path}: {e}")
+    # Generate Random Text
+    def generate_label(self) -> str:
+        return ''.join(random.choice(self.characters) 
+                      for _ in range(self.length))
     
     def _save_label(self, label: str, path: Union[str, Path]) -> Path:
        
@@ -59,17 +46,38 @@ class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
         except Exception as e:
             raise IOError(f"Failed to save captcha label to {path}: {e}")
     
-    # Generate Random Text
-    def _generate_random_text(self) -> str:
-        return ''.join(random.choice(self.characters) 
-                      for _ in range(self.length))
-                      
-    def save(self, sample: BytesIO, label: str, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
+    def generate_sample(self, label: str) -> BytesIO:
+        return self.generator.generate(str(label))
 
+    def _save_sample(self, sample: BytesIO, path: Union[str, Path]) -> Path:
+        
+        # Convert to Path object
+        path_obj = Path(path)
+        path_obj.parent.mkdir(parents=True, exist_ok=True)
+        
+        try:
+            with BytesIO(sample.getvalue()) as image_data:
+                with Image.open(image_data) as img:
+                    img.save(path_obj)
+            return path_obj
+        except Exception as e:
+            raise IOError(f"Failed to save captcha image to {path}: {e}")
+    
+    def generate(self) -> Tuple[BytesIO, str]:
+        text = self.generate_label()
+        image = self.generate_sample(str(text))
+        return image, text
+                      
+    def save(self, sample: BytesIO, label: str, output_dir: Optional[Union[str, Path]] = None, use_timestamp_dir: bool = True) -> Tuple[Path, Path]:
         if output_dir is None:
             base_dir = self.output_dir
         else:
             base_dir = Path(output_dir)
+        
+        # Only create timestamp directory if specified
+        if use_timestamp_dir:
+            timestamp = IDGenerator.get_dir_timestamp()
+            base_dir = base_dir / timestamp
         
         # Create Directories
         images_dir = base_dir / "samples"
