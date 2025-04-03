@@ -12,4 +12,3 @@ captcha:
     parallel: false
     max_workers: null
     seed: null
-    output_dir: "datasets/image"
