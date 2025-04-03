@@ -6,6 +6,7 @@ from io import BytesIO
 from PIL import Image  # type: ignore
 from pathlib import Path
 from ..utils.id_generator import IDGenerator
+from datetime import datetime
 
 class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
     
@@ -67,12 +68,16 @@ class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
         image = self.generate_sample(str(text))
         return image, text
                       
-    def save(self, sample: BytesIO, label: str, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
-
+    def save(self, sample: BytesIO, label: str, output_dir: Optional[Union[str, Path]] = None, use_timestamp_dir: bool = True) -> Tuple[Path, Path]:
         if output_dir is None:
             base_dir = self.output_dir
         else:
             base_dir = Path(output_dir)
+        
+        # Only create timestamp directory if specified
+        if use_timestamp_dir:
+            timestamp = IDGenerator.get_dir_timestamp()
+            base_dir = base_dir / timestamp
         
         # Create Directories
         images_dir = base_dir / "samples"

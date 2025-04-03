@@ -57,7 +57,7 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
         pass
     
     @abstractmethod
-    def save(self, sample: SampleType, label: LabelType, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
+    def save(self, sample: SampleType, label: LabelType, output_dir: Optional[Union[str, Path]] = None, use_timestamp_dir: bool = True) -> Tuple[Path, Path]:
         pass
     
     def export(self, output_dir: Optional[Union[str, Path]] = None) -> Tuple[Path, Path]:
@@ -97,18 +97,21 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
             
             # Create dataset output directory
             if output_dir:
-                output_dir = Path(output_dir)
+                base_output_dir = Path(output_dir)
             else:
                 captcha_config = get_settings().get_captcha_config(self.config.type.value)
 
                 if 'dataset_output_dir' not in captcha_config:
                     raise ValueError(f"Missing required configuration 'dataset_output_dir' for CAPTCHA type '{self.config.type.value}'")
     
-                output_dir = Path(captcha_config['dataset_output_dir'])
-
+                base_output_dir = Path(captcha_config['dataset_output_dir'])
+            
+            # Use Shared Directory Timestamp
+            timestamp = IDGenerator.get_dir_timestamp()
+            output_dir = base_output_dir / timestamp
             output_dir.mkdir(parents=True, exist_ok=True)
             
-            # Create split directories
+            # Create Split Directories
             splits = ['train', 'val', 'test']
             split_dirs = {}
             for split in splits:
@@ -170,7 +173,7 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
         results = []
         for _ in range(size):
             sample, label = self.generate()
-            sample_path, label_path = self.save(sample, label, output_dir)
+            sample_path, label_path = self.save(sample, label, output_dir, use_timestamp_dir=False)
             results.append((sample_path, label_path))
         return results
     
@@ -191,12 +194,12 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
                 generator = CaptchaFactory.create(self.config.type)
                 
                 sample = generator.generate_sample(label)
-                return generator.save(sample, label, output_dir_path)
+                return generator.save(sample, label, output_dir_path, use_timestamp_dir=False)
             except Exception as e:
                 # Error handling: fallback to current instance
                 print(f"Parallel generation failed: {e}")
                 sample = self.generate_sample(label)
-                return self.save(sample, label, output_dir_path)
+                return self.save(sample, label, output_dir_path, use_timestamp_dir=False)
         
         # Use thread pool to execute parallel tasks
         from concurrent.futures import ThreadPoolExecutor

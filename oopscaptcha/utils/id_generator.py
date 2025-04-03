@@ -1,10 +1,12 @@
 import uuid
 import time
 import random
+from datetime import datetime
 
 class IDGenerator:
     
     _fixed_timestamp = None
+    _dir_timestamp = None
     
     @staticmethod
     def generate_captcha_id() -> str:
@@ -25,4 +27,14 @@ class IDGenerator:
         
     @staticmethod
     def reset_timestamp():
-        IDGenerator._fixed_timestamp = None 
+        IDGenerator._fixed_timestamp = None
+        
+    @staticmethod
+    def get_dir_timestamp() -> str:
+        if IDGenerator._dir_timestamp is None:
+            IDGenerator._dir_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return IDGenerator._dir_timestamp
+    
+    @staticmethod
+    def reset_dir_timestamp():
+        IDGenerator._dir_timestamp = None 
