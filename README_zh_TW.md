@@ -1,54 +1,54 @@
 # Oops-Captcha
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/ArIs0x145/Oops-Captcha)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![版本](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/ArIs0x145/Oops-Captcha)
+[![授權](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/python-3.7%2B-blue.svg)](https://www.python.org/downloads/)
 
-A flexible and extensible Python library for generating CAPTCHA images and datasets.
+一個靈活且可擴展的 Python 驗證碼（CAPTCHA）生成庫，可用於生成驗證碼圖像和資料集。
 
-## Installation
+## 安裝
 
 ```bash
-# Clone the repository
+# 克隆儲存庫
 git clone https://github.com/ArIs0x145/Oops-Captcha.git
 cd Oops-Captcha
 
-# Install dependencies
+# 安裝依賴
 pip install -r requirements.txt
 ```
 
-## Quick Start
+## 快速開始
 
-Generate a single CAPTCHA image:
+生成單個驗證碼圖像：
 
 ```python
 from oopscaptcha.generators.factory import CaptchaFactory
 from oopscaptcha.generators.types import CaptchaType
 
-# Create an image CAPTCHA generator
+# 創建圖像驗證碼生成器
 generator = CaptchaFactory.create(CaptchaType.IMAGE)
 
-# Generate and save a CAPTCHA
+# 生成並保存驗證碼
 sample_path, label_path = generator.export()
-print(f"CAPTCHA image saved to: {sample_path}")
-print(f"CAPTCHA label saved to: {label_path}")
+print(f"驗證碼圖像已保存至：{sample_path}")
+print(f"驗證碼標籤已保存至：{label_path}")
 ```
 
-Generate a CAPTCHA dataset:
+生成驗證碼資料集：
 
 ```bash
 python -m tests.generate_dataset --type image --size 1000 --parallel
 ```
 
-## Usage
+## 使用方法
 
-### Generating Single CAPTCHA
+### 生成單個驗證碼
 
 ```python
 from oopscaptcha.generators.factory import CaptchaFactory
 from oopscaptcha.generators.types import CaptchaType
 
-# Create an image CAPTCHA generator with custom settings
+# 創建自定義設置的圖像驗證碼生成器
 generator = CaptchaFactory.create(
     CaptchaType.IMAGE,
     width=200,
@@ -57,28 +57,28 @@ generator = CaptchaFactory.create(
     characters="0123456789"
 )
 
-# Generate and save
+# 生成並保存
 sample_path, label_path = generator.export("custom_output_dir")
 ```
 
-### Generating CAPTCHA Dataset
+### 生成驗證碼資料集
 
-From the command line:
+通過命令行：
 
 ```bash
 python -m tests.generate_dataset --type image --size 1000 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 --parallel --output-dir custom_dataset
 ```
 
-Or programmatically:
+或通過程式碼：
 
 ```python
 from oopscaptcha.generators.factory import CaptchaFactory
 from oopscaptcha.generators.types import CaptchaType
 
-# Create an image CAPTCHA generator
+# 創建圖像驗證碼生成器
 generator = CaptchaFactory.create(CaptchaType.IMAGE)
 
-# Generate dataset
+# 生成資料集
 dataset = generator.generate_dataset(
     size=1000,
     train_ratio=0.7,
@@ -90,20 +90,20 @@ dataset = generator.generate_dataset(
     output_dir="custom_dataset"
 )
 
-# Print statistics
+# 輸出統計資訊
 for split, samples in dataset.items():
-    print(f"{split}: {len(samples)} samples")
+    print(f"{split}: {len(samples)} 個樣本")
 ```
 
-## Documentation
+## 文檔
 
-For more detailed information, see the [documentation](docs/README.md):
+更詳細的信息，請參閱[文檔](docs/README_zh_TW.md)：
 
-- [API Reference](docs/api-reference.md)
-- [Architecture](docs/architecture.md)
-- [Configuration](docs/configuration.md)
-- [Extending](docs/extending.md)
+- [API 參考](docs/api-reference_zh_TW.md)
+- [架構](docs/architecture_zh_TW.md)
+- [配置](docs/configuration_zh_TW.md)
+- [擴展](docs/extending_zh_TW.md)
 
-## License
+## 授權協議
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+本項目使用 MIT 授權協議 - 詳見 LICENSE 文件。 
