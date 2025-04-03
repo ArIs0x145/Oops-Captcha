@@ -5,9 +5,11 @@ from pathlib import Path
 import json
 import os
 import time
+import glob
 
 from oopscaptcha.generators.factory import CaptchaFactory
 from oopscaptcha.generators.types import CaptchaType
+from oopscaptcha.utils.id_generator import IDGenerator
 
 class TestDatasetGeneration(unittest.TestCase):
     
@@ -15,9 +17,17 @@ class TestDatasetGeneration(unittest.TestCase):
         self.temp_dir = tempfile.mkdtemp()
         self.output_dir = Path(self.temp_dir) / "test_dataset"
         self.generator = CaptchaFactory.create(CaptchaType.IMAGE)
+        # Reset directory timestamp to ensure clean state for each test
+        IDGenerator.reset_dir_timestamp()
     
     def tearDown(self):
         shutil.rmtree(self.temp_dir, ignore_errors=True)
+        
+    def _get_timestamp_dir(self, base_dir):
+        """Helper method to get the timestamped directory"""
+        timestamp_dirs = list(base_dir.glob("*"))
+        self.assertTrue(len(timestamp_dirs) > 0, "No timestamp directory found")
+        return timestamp_dirs[0]
     
     def test_basic_generation(self):
         size = 5
@@ -26,13 +36,16 @@ class TestDatasetGeneration(unittest.TestCase):
             output_dir=self.output_dir
         )
         
+        # Get the timestamp directory
+        timestamp_dir = self._get_timestamp_dir(self.output_dir)
+        
         # Verify that all split directories were created
-        self.assertTrue((self.output_dir / "train").exists())
-        self.assertTrue((self.output_dir / "val").exists())
-        self.assertTrue((self.output_dir / "test").exists())
+        self.assertTrue((timestamp_dir / "train").exists())
+        self.assertTrue((timestamp_dir / "val").exists())
+        self.assertTrue((timestamp_dir / "test").exists())
         
         # Verify metadata file was generated
-        self.assertTrue((self.output_dir / "metadata.json").exists())
+        self.assertTrue((timestamp_dir / "metadata.json").exists())
         
         # Verify correct number of samples
         total_samples = sum(len(samples) for samples in dataset.values())
@@ -61,8 +74,8 @@ class TestDatasetGeneration(unittest.TestCase):
         
         # Verify correct number of samples
         self.assertEqual(len(dataset['train']), 7)  # 0.7 * 10 = 7
-        self.assertEqual(len(dataset['val']), 2)     # 0.2 * 10 = 2
-        self.assertEqual(len(dataset['test']), 1)    # 0.1 * 10 = 1
+        self.assertEqual(len(dataset['val']), 2)    # 0.2 * 10 = 2
+        self.assertEqual(len(dataset['test']), 1)   # 0.1 * 10 = 1
     
     def test_metadata(self):
         size = 10
@@ -80,8 +93,11 @@ class TestDatasetGeneration(unittest.TestCase):
             output_dir=self.output_dir
         )
         
+        # Get the timestamp directory
+        timestamp_dir = self._get_timestamp_dir(self.output_dir)
+        
         # Read metadata file
-        with open(self.output_dir / "metadata.json", 'r') as f:
+        with open(timestamp_dir / "metadata.json", 'r') as f:
             metadata = json.load(f)
         
         # Verify metadata content
@@ -105,6 +121,9 @@ class TestDatasetGeneration(unittest.TestCase):
             seed=seed,
             output_dir=self.output_dir / "dataset1"
         )
+        
+        # Reset directory timestamp to ensure we get a new directory
+        IDGenerator.reset_dir_timestamp()
         
         dataset2 = self.generator.generate_dataset(
             size=size,
@@ -131,6 +150,9 @@ class TestDatasetGeneration(unittest.TestCase):
             output_dir=self.output_dir / "serial"
         )
         serial_time = time.time() - serial_start
+        
+        # Reset directory timestamp to ensure we get a new directory
+        IDGenerator.reset_dir_timestamp()
         
         # Parallel generation
         parallel_start = time.time()
@@ -177,15 +199,18 @@ class TestDatasetGeneration(unittest.TestCase):
             output_dir=self.output_dir
         )
         
+        # Get the timestamp directory
+        timestamp_dir = self._get_timestamp_dir(self.output_dir)
+        
         # Verify correct split
         self.assertEqual(len(dataset['train']), 10)
         self.assertEqual(len(dataset['val']), 0)
         self.assertEqual(len(dataset['test']), 0)
         
         # Verify all split directories were created, even if some are empty
-        self.assertTrue((self.output_dir / "train").exists())
-        self.assertTrue((self.output_dir / "val").exists())
-        self.assertTrue((self.output_dir / "test").exists())
+        self.assertTrue((timestamp_dir / "train").exists())
+        self.assertTrue((timestamp_dir / "val").exists())
+        self.assertTrue((timestamp_dir / "test").exists())
 
 if __name__ == '__main__':
     unittest.main() 

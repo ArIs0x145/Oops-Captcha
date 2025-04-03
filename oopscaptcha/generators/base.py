@@ -89,85 +89,83 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
         if abs(total_ratio - 1.0) > 1e-6:
             raise ValueError(f"Ratios must sum to 1.0, got {total_ratio}")
         
-        try:
-            if seed is not None:
-                random.seed(seed)
-                np.random.seed(seed)
-                IDGenerator.set_fixed_timestamp("20250101_114514")
-            
-            # Create dataset output directory
-            if output_dir:
-                base_output_dir = Path(output_dir)
-            else:
-                captcha_config = get_settings().get_captcha_config(self.config.type.value)
+        # Set random seeds for reproducibility if specified
+        if seed is not None:
+            random.seed(seed)
+            np.random.seed(seed)
+        
+        # Create dataset output directory
+        if output_dir:
+            base_output_dir = Path(output_dir)
+        else:
+            captcha_config = get_settings().get_captcha_config(self.config.type.value)
 
-                if 'dataset_output_dir' not in captcha_config:
-                    raise ValueError(f"Missing required configuration 'dataset_output_dir' for CAPTCHA type '{self.config.type.value}'")
-    
-                base_output_dir = Path(captcha_config['dataset_output_dir'])
+            if 'dataset_output_dir' not in captcha_config:
+                raise ValueError(f"Missing required configuration 'dataset_output_dir' for CAPTCHA type '{self.config.type.value}'")
+
+            base_output_dir = Path(captcha_config['dataset_output_dir'])
+        
+        # Use Shared Directory Timestamp
+        timestamp = IDGenerator.get_dir_timestamp()
+        output_dir = base_output_dir / timestamp
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Create Split Directories
+        splits = ['train', 'val', 'test']
+        split_dirs = {}
+        for split in splits:
+            split_dir = output_dir / split
+            split_dir.mkdir(parents=True, exist_ok=True)
+            split_dirs[split] = split_dir
             
-            # Use Shared Directory Timestamp
-            timestamp = IDGenerator.get_dir_timestamp()
-            output_dir = base_output_dir / timestamp
-            output_dir.mkdir(parents=True, exist_ok=True)
+        # Calculate sizes for each split
+        train_size = int(size * train_ratio)
+        val_size = int(size * val_ratio)
+        test_size = size - train_size - val_size
+        
+        split_sizes = {
+            'train': train_size,
+            'val': val_size,
+            'test': test_size
+        }
+        
+        # Generate dataset
+        results: Dict[str, List[Tuple[Path, Path]]] = {split: [] for split in splits}
+        
+        if parallel and max_workers != 0:
+            # Parallel generation
+            max_workers = max_workers or os.cpu_count() or 1
             
-            # Create Split Directories
-            splits = ['train', 'val', 'test']
-            split_dirs = {}
-            for split in splits:
-                split_dir = output_dir / split
-                split_dir.mkdir(parents=True, exist_ok=True)
-                split_dirs[split] = split_dir
-                
-            # Calculate sizes for each split
-            train_size = int(size * train_ratio)
-            val_size = int(size * val_ratio)
-            test_size = size - train_size - val_size
+            for split, split_size in split_sizes.items():
+                if split_size <= 0:
+                    continue
+                    
+                split_results = self._generate_dataset_parallel(
+                    size=split_size,
+                    output_dir=split_dirs[split],
+                    max_workers=max_workers
+                )
+                results[split].extend(split_results)
+        else:
+            # Sequential generation
+            for split, split_size in split_sizes.items():
+                if split_size <= 0:
+                    continue
+                    
+                split_results = self._generate_dataset_sequential(
+                    size=split_size,
+                    output_dir=split_dirs[split]
+                )
+                results[split].extend(split_results)
             
-            split_sizes = {
-                'train': train_size,
-                'val': val_size,
-                'test': test_size
-            }
-            
-            # Generate dataset
-            results: Dict[str, List[Tuple[Path, Path]]] = {split: [] for split in splits}
-            
-            if parallel and max_workers != 0:
-                # Parallel generation
-                max_workers = max_workers or os.cpu_count() or 1
-                
-                for split, split_size in split_sizes.items():
-                    if split_size <= 0:
-                        continue
-                        
-                    split_results = self._generate_dataset_parallel(
-                        size=split_size,
-                        output_dir=split_dirs[split],
-                        max_workers=max_workers
-                    )
-                    results[split].extend(split_results)
-            else:
-                # Sequential generation
-                for split, split_size in split_sizes.items():
-                    if split_size <= 0:
-                        continue
-                        
-                    split_results = self._generate_dataset_sequential(
-                        size=split_size,
-                        output_dir=split_dirs[split]
-                    )
-                    results[split].extend(split_results)
-                
-            # Save metadata
-            self._save_dataset_metadata(output_dir, size, train_ratio, val_ratio, test_ratio, 
-                                      parallel, max_workers, seed, results)
-            
-            return results
-        finally:
-            # Reset any fixed timestamp to avoid affecting other operations
-            if seed is not None:
-                IDGenerator.reset_timestamp()
+        # Save metadata
+        self._save_dataset_metadata(output_dir, size, train_ratio, val_ratio, test_ratio, 
+                                  parallel, max_workers, seed, results)
+        
+        # Reset directory timestamp to ensure new datasets get new timestamps
+        IDGenerator.reset_dir_timestamp()
+        
+        return results
     
     def _generate_dataset_sequential(self, size: int, output_dir: Path) -> List[Tuple[Path, Path]]:
         results = []
