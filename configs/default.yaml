@@ -7,6 +7,7 @@ captcha:
     characters: "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
     output_dir: "data/image"
 
+    size: 1000
     train_ratio: 0.8
     val_ratio: 0.1
     test_ratio: 0.1
@@ -14,3 +15,4 @@ captcha:
     max_workers: null
     seed: null
     dataset_output_dir: "data/image_dataset"
+    

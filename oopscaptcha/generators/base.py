@@ -1,10 +1,9 @@
 from abc import ABC, abstractmethod
-from typing import TypeVar, Tuple, Any, Dict, Generic, Union, Optional, List, Callable
+from typing import TypeVar, Tuple, Any, Dict, Generic, Union, Optional, List
 from dataclasses import dataclass
 from pathlib import Path
 import random
 import os
-from concurrent.futures import ProcessPoolExecutor
 from .types import CaptchaType
 import json
 from datetime import datetime
@@ -19,17 +18,6 @@ LabelType = TypeVar('LabelType')  # Captcha Label
 class CaptchaConfig:
     type: CaptchaType
     params: Dict[str, Any]
-
-@dataclass
-class DatasetConfig:
-    size: int
-    train_ratio: float = 0.8
-    val_ratio: float = 0.1
-    test_ratio: float = 0.1
-    parallel: bool = False
-    max_workers: Optional[int] = None
-    seed: Optional[int] = None
-    output_dir: Optional[Union[str, Path]] = None
 
 class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
     
@@ -64,18 +52,44 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
         sample, label = self.generate()
         return self.save(sample, label, output_dir)
         
-    def generate_dataset(self, size: int, 
+    def generate_dataset(self,
+                        size: Optional[int] = None, 
                         train_ratio: Optional[float] = None,
                         val_ratio: Optional[float] = None,
                         test_ratio: Optional[float] = None,
-                        parallel: bool = False,
+                        parallel: Optional[bool] = None,
                         max_workers: Optional[int] = None,
                         seed: Optional[int] = None,
                         output_dir: Optional[Union[str, Path]] = None) -> Dict[str, List[Tuple[Path, Path]]]:
         
-        train_ratio = 0.8 if train_ratio is None else train_ratio
-        val_ratio = 0.1 if val_ratio is None else val_ratio
-        test_ratio = 0.1 if test_ratio is None else test_ratio
+        # Get default values from configuration
+        captcha_config = get_settings().get_captcha_config(self.config.type.value)
+        
+        # Use default values from configuration
+        train_ratio = captcha_config.get('train_ratio') if train_ratio is None else train_ratio
+        val_ratio = captcha_config.get('val_ratio') if val_ratio is None else val_ratio
+        test_ratio = captcha_config.get('test_ratio') if test_ratio is None else test_ratio
+        parallel = captcha_config.get('parallel') if parallel is None else parallel
+        max_workers = captcha_config.get('max_workers') if max_workers is None else max_workers
+        seed = captcha_config.get('seed') if seed is None else seed
+        
+        # Check if parameters exist or are valid
+        if size is None:
+            raise ValueError(f"Missing required parameter 'size' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+        if train_ratio is None:
+            raise ValueError(f"Missing required parameter 'train_ratio' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+        if val_ratio is None:
+            raise ValueError(f"Missing required parameter 'val_ratio' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+        if test_ratio is None:
+            raise ValueError(f"Missing required parameter 'test_ratio' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+        if parallel is None:
+            raise ValueError(f"Missing required parameter 'parallel' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+        if output_dir is None:
+            raise ValueError(f"Missing required parameter 'output_dir' and no default value in configuration for CAPTCHA type '{self.config.type.value}'")
+
+        # Validate size is positive
+        if size <= 0:
+            raise ValueError(f"Invalid size: {size}")
         
         # Validate ratios are non-negative
         if train_ratio < 0 or val_ratio < 0 or test_ratio < 0:
@@ -95,16 +109,8 @@ class CaptchaGenerator(Generic[SampleType, LabelType], ABC):
             np.random.seed(seed)
         
         # Create dataset output directory
-        if output_dir:
-            base_output_dir = Path(output_dir)
-        else:
-            captcha_config = get_settings().get_captcha_config(self.config.type.value)
-
-            if 'dataset_output_dir' not in captcha_config:
-                raise ValueError(f"Missing required configuration 'dataset_output_dir' for CAPTCHA type '{self.config.type.value}'")
-
-            base_output_dir = Path(captcha_config['dataset_output_dir'])
-        
+        base_output_dir = Path(output_dir)
+       
         # Use Shared Directory Timestamp
         timestamp = IDGenerator.get_dir_timestamp()
         output_dir = base_output_dir / timestamp

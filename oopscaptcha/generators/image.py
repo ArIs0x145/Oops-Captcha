@@ -6,7 +6,7 @@ from io import BytesIO
 from PIL import Image  # type: ignore
 from pathlib import Path
 from ..utils.id_generator import IDGenerator
-from datetime import datetime
+from ..config.settings import get_settings
 
 class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
     
@@ -14,12 +14,31 @@ class ImageCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
         super().__init__(config)
         # Get or Set Params
         params = config.params
-        self.width = params.get('width', 160)
-        self.height = params.get('height', 60)
-        self.fonts = params.get('fonts')
-        self.length = params.get('length', 4)
-        self.characters = params.get('characters', "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-        self.output_dir = Path(params.get('output_dir', f"datasets/{config.type.value}"))
+        captcha_config = get_settings().get_captcha_config(config.type.value)
+        
+        # Use Params First, Then Use Config
+        self.width = params.get('width') if 'width' in params else captcha_config.get('width')
+        self.height = params.get('height') if 'height' in params else captcha_config.get('height') 
+        self.length = params.get('length') if 'length' in params else captcha_config.get('length')
+        self.fonts = params.get('fonts') if 'fonts' in params else captcha_config.get('fonts')
+        self.characters = params.get('characters') if 'characters' in params else captcha_config.get('characters')
+        self.output_dir = params.get('output_dir') if 'output_dir' in params else captcha_config.get('output_dir')
+
+        # Check Required Params
+        if self.width is None:
+            raise ValueError(f"Missing required parameter 'width' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        if self.height is None:
+            raise ValueError(f"Missing required parameter 'height' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        if self.length is None:
+            raise ValueError(f"Missing required parameter 'length' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        if self.fonts is None:
+            raise ValueError(f"Missing required parameter 'fonts' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        if self.characters is None:
+            raise ValueError(f"Missing required parameter 'characters' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        if self.output_dir is None:
+            raise ValueError(f"Missing required parameter 'output_dir' and no default value in configuration for CAPTCHA type '{config.type.value}'")
+        
+        self.output_dir = Path(self.output_dir)
         
         # Create Image Generator
         self.generator = ImageCaptcha(
