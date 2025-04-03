@@ -15,8 +15,8 @@ class CaptchaType(Enum):
     IMAGE = 'image'
     MATH = 'math'  # 新類型
 
-# 2. 創建新的生成器類
-class MathCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
+# 2. 創建新的生成器類 SampleType, LabelType 要替換成你的Type
+class MathCaptchaGenerator(CaptchaGenerator[SampleType, LabelType):
     # 實現...
 
 # 3. 在 factory.py 中註冊
