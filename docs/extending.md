@@ -15,8 +15,8 @@ class CaptchaType(Enum):
     IMAGE = 'image'
     MATH = 'math'  # New type
 
-# 2. Create a new generator class
-class MathCaptchaGenerator(CaptchaGenerator[BytesIO, str]):
+# 2. Create a new generator class SampleType, LabelType must to replace your Type
+class MathCaptchaGenerator(CaptchaGenerator[SampleType, LabelType]):
     # Implementation...
 
 # 3. Register in factory.py
