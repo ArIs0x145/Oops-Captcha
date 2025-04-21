@@ -8,13 +8,21 @@ A flexible and extensible Python library for generating CAPTCHA images and datas
 
 ## Installation
 
+### Method 1: Install via GitHub
+
+```bash
+pip install git+https://github.com/ArIs0x145/Oops-Captcha.git
+```
+
+### Method 2: Local Installation
+
 ```bash
 # Clone the repository
 git clone https://github.com/ArIs0x145/Oops-Captcha.git
 cd Oops-Captcha
 
 # Install dependencies
-pip install -r requirements.txt
+pip install .
 ```
 
 ## Quick Start
@@ -107,3 +115,29 @@ For more detailed information, see the [documentation](docs/README.md):
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Command Line Usage
+
+After installation, you can use the `oops-captcha` command:
+
+### Generate a Single CAPTCHA
+
+```bash
+# Using default settings
+oops-captcha single --output-dir ./output
+
+# With custom settings
+oops-captcha single --type image --width 200 --height 80 --length 6 --output-dir ./output
+```
+
+### Generate a CAPTCHA Dataset
+
+```bash
+# Basic usage
+oops-captcha dataset --size 1000 --output-dir ./dataset
+
+# With all parameters
+oops-captcha dataset --type image --size 1000 --width 200 --height 80 \
+  --length 6 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 \
+  --parallel --output-dir ./dataset
+```
