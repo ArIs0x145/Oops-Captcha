@@ -8,13 +8,21 @@
 
 ## 安裝
 
+### 方法1: 通過GitHub安裝
+
+```bash
+pip install git+https://github.com/ArIs0x145/Oops-Captcha.git
+```
+
+### 方法2: 本地安裝
+
 ```bash
 # 克隆儲存庫
 git clone https://github.com/ArIs0x145/Oops-Captcha.git
 cd Oops-Captcha
 
-# 安裝依賴
-pip install -r requirements.txt
+# 安裝
+pip install .
 ```
 
 ## 快速開始
@@ -37,7 +45,7 @@ print(f"驗證碼標籤已保存至：{label_path}")
 生成驗證碼資料集：
 
 ```bash
-python -m tests.generate_dataset --type image --size 1000 --parallel
+oops-captcha dataset --type image --size 1000 --parallel
 ```
 
 ## 使用方法
@@ -66,7 +74,7 @@ sample_path, label_path = generator.export("custom_output_dir")
 通過命令行：
 
 ```bash
-python -m tests.generate_dataset --type image --size 1000 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 --parallel --output-dir custom_dataset
+oops-captcha dataset --type image --size 1000 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 --parallel --output-dir custom_dataset
 ```
 
 或通過程式碼：
@@ -103,6 +111,43 @@ for split, samples in dataset.items():
 - [架構](docs/architecture_zh_TW.md)
 - [配置](docs/configuration_zh_TW.md)
 - [擴展](docs/extending_zh_TW.md)
+
+## 命令行使用
+
+安裝後，您可以使用 `oops-captcha` 命令：
+
+### 生成單個驗證碼
+
+```bash
+# --type 參數是必須的
+oops-captcha single --type image --output-dir ./output
+
+# 使用自定義設置
+oops-captcha single --type image --width 200 --height 80 --length 6 --output-dir ./output
+```
+
+### 生成驗證碼數據集
+
+```bash
+# 基本用法 (--type 是必須的)
+oops-captcha dataset --type image --size 1000 --output-dir ./dataset
+
+# 使用所有參數
+oops-captcha dataset --type image --size 1000 --width 200 --height 80 \
+  --length 6 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 \
+  --parallel --output-dir ./dataset
+```
+
+### 幫助信息
+
+```bash
+# 查看主命令幫助
+oops-captcha --help
+
+# 查看子命令幫助
+oops-captcha single --help
+oops-captcha dataset --help
+```
 
 ## 授權協議
 

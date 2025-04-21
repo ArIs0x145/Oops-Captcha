@@ -42,10 +42,10 @@ print(f"CAPTCHA image saved to: {sample_path}")
 print(f"CAPTCHA label saved to: {label_path}")
 ```
 
-Generate a CAPTCHA dataset:
+Generate a CAPTCHA dataset using the command-line tool:
 
 ```bash
-python -m tests.generate_dataset --type image --size 1000 --parallel
+oops-captcha dataset --type image --size 1000 --parallel
 ```
 
 ## Usage
@@ -74,7 +74,7 @@ sample_path, label_path = generator.export("custom_output_dir")
 From the command line:
 
 ```bash
-python -m tests.generate_dataset --type image --size 1000 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 --parallel --output-dir custom_dataset
+oops-captcha dataset --type image --size 1000 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 --parallel --output-dir custom_dataset
 ```
 
 Or programmatically:
@@ -123,8 +123,8 @@ After installation, you can use the `oops-captcha` command:
 ### Generate a Single CAPTCHA
 
 ```bash
-# Using default settings
-oops-captcha single --output-dir ./output
+# The --type parameter is required
+oops-captcha single --type image --output-dir ./output
 
 # With custom settings
 oops-captcha single --type image --width 200 --height 80 --length 6 --output-dir ./output
@@ -133,11 +133,22 @@ oops-captcha single --type image --width 200 --height 80 --length 6 --output-dir
 ### Generate a CAPTCHA Dataset
 
 ```bash
-# Basic usage
-oops-captcha dataset --size 1000 --output-dir ./dataset
+# Basic usage (--type is required)
+oops-captcha dataset --type image --size 1000 --output-dir ./dataset
 
 # With all parameters
 oops-captcha dataset --type image --size 1000 --width 200 --height 80 \
   --length 6 --train-ratio 0.7 --val-ratio 0.2 --test-ratio 0.1 \
   --parallel --output-dir ./dataset
+```
+
+### Get Help
+
+```bash
+# View main command help
+oops-captcha --help
+
+# View sub-command help
+oops-captcha single --help
+oops-captcha dataset --help
 ```
